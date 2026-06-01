@@ -277,11 +277,19 @@ h1 {
 }
 
 /* Responsive */
+.arena-wrapper {
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 @media (max-width: 800px) {
-  .arena {
-    width: 100vw;
-    height: 100vw;
-    transform: scale(calc(100vw / 760));
-    transform-origin: top left;
-  }
+  body { padding: 20px 12px 40px; }
+  h1 { font-size: 16px; }
+  .filters { gap: 5px; margin-bottom: 16px; }
+  .fb { padding: 4px 10px; font-size: 11px; }
+  .neutral-row { gap: 6px; }
+  .ncard { width: 74px; height: 46px; }
+  .ncard img { max-width: 62px; max-height: 34px; }
 }
