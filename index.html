@@ -75,7 +75,7 @@ const tip   = document.getElementById('tip');
 const CX = 380, CY = 380;
 const CARD_W = 92, CARD_H = 56, GAP = 6;
 
-function hueToAngleDeg(h) { return (h - 90 + 360) % 360; }
+function hueToAngleDeg(h) { return ((90 - h) % 360 + 360) % 360; }
 
 function overlaps(x1, y1, x2, y2) {
   return Math.abs(x1 - x2) < CARD_W + GAP && Math.abs(y1 - y2) < CARD_H + GAP;
