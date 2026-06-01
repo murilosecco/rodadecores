@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roda de Cores — Players de Pagamento</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<h1>PALMVEIN</h1>
+<p class="subtitle">Estudo de Cores - Players de Pagamento</p>
+
+<div class="filters" id="filters"></div>
+
+<div class="arena" id="arena">
+  <div class="tip" id="tip"></div>
+  <div class="wheel-wrap">
+    <div class="wheel"></div>
+    <div class="wheel-hole"><span>cor da<br>marca</span></div>
+  </div>
+</div>
+
+<div class="neutral-sec">
+  <div class="nl">Marcas neutras · preto / branco</div>
+  <div class="neutral-row" id="neutral-row"></div>
+</div>
+
+<div class="legend" id="legend"></div>
+<div class="count" id="count"></div>
+
+<script>
+const companies = [
+  { key: 'visa',          name: 'Visa',            hue: 230,  cat: 'Redes de Cartão',         logo: 'assets/logos/visa.svg' },
+  { key: 'mastercard',    name: 'Mastercard',       hue: 5,    cat: 'Redes de Cartão',         logo: 'assets/logos/mastercard.svg' },
+  { key: 'elo',           name: 'Elo',              hue: 45,   cat: 'Redes de Cartão',         logo: 'assets/logos/elo.svg' },
+  { key: 'discover',      name: 'Discover',         hue: 24,   cat: 'Redes de Cartão',         logo: 'assets/logos/discover.png' },
+  { key: 'paypal',        name: 'PayPal',           hue: 220,  cat: 'Carteiras Digitais',      logo: 'assets/logos/paypal.svg' },
+  { key: 'applepay',      name: 'Apple Pay',        hue: null, cat: 'Carteiras Digitais',      logo: 'assets/logos/applepay.svg' },
+  { key: 'googlepay',     name: 'Google Pay',       hue: 218,  cat: 'Carteiras Digitais',      logo: 'assets/logos/googlepay.svg' },
+  { key: 'mercadopago',   name: 'Mercado Pago',     hue: 200,  cat: 'Carteiras Digitais',      logo: 'assets/logos/mercadopago.png' },
+  { key: 'picpay',        name: 'PicPay',           hue: 150,  cat: 'Carteiras Digitais',      logo: 'assets/logos/picpay.svg' },
+  { key: 'itau',          name: 'Itaú',             hue: 28,   cat: 'Bancos BR',               logo: 'assets/logos/itau.svg' },
+  { key: 'bradesco',      name: 'Bradesco',         hue: 348,  cat: 'Bancos BR',               logo: 'assets/logos/bradesco.svg' },
+  { key: 'santander',     name: 'Santander',        hue: 0,    cat: 'Bancos BR',               logo: 'assets/logos/santander.svg' },
+  { key: 'bancodobrasil', name: 'Banco do Brasil',  hue: 50,   cat: 'Bancos BR',               logo: 'assets/logos/bancodobrasil.svg' },
+  { key: 'caixa',         name: 'Caixa',            hue: 210,  cat: 'Bancos BR',               logo: 'assets/logos/caixa.svg' },
+  { key: 'xp',            name: 'XP',               hue: null, cat: 'Bancos BR',               logo: 'assets/logos/xp.svg' },
+  { key: 'nubank',        name: 'Nubank',           hue: 280,  cat: 'Fintechs BR',             logo: 'assets/logos/nubank.svg' },
+  { key: 'inter',         name: 'Inter',            hue: 30,   cat: 'Fintechs BR',             logo: 'assets/logos/inter.svg' },
+  { key: 'c6bank',        name: 'C6 Bank',          hue: null, cat: 'Fintechs BR',             logo: 'assets/logos/c6bank.svg' },
+  { key: 'wise',          name: 'Wise',             hue: 100,  cat: 'Fintechs Internacionais', logo: 'assets/logos/wise.svg' },
+  { key: 'revolut',       name: 'Revolut',          hue: null, cat: 'Fintechs Internacionais', logo: 'assets/logos/revolut.svg' },
+  { key: 'chime',         name: 'Chime',            hue: 152,  cat: 'Fintechs Internacionais', logo: 'assets/logos/chime.svg' },
+  { key: 'avenue',        name: 'Avenue',           hue: null, cat: 'Fintechs Internacionais', logo: 'assets/logos/avenue.svg' },
+  { key: 'citibank',      name: 'Citibank',         hue: 215,  cat: 'Fintechs Internacionais', logo: 'assets/logos/citibank.svg' },
+  { key: 'alipay',        name: 'Alipay',           hue: 215,  cat: 'Asiáticas',               logo: 'assets/logos/alipay.svg' },
+  { key: 'wechatpay',     name: 'WeChat Pay',       hue: 147,  cat: 'Asiáticas',               logo: 'assets/logos/wechatpay.png' },
+];
+
+const cats = ['Todos', 'Redes de Cartão', 'Carteiras Digitais', 'Bancos BR', 'Fintechs BR', 'Fintechs Internacionais', 'Asiáticas'];
+
+const catColors = {
+  'Redes de Cartão':         '#378ADD',
+  'Carteiras Digitais':      '#1D9E75',
+  'Bancos BR':               '#D85A30',
+  'Fintechs BR':             '#820AD1',
+  'Fintechs Internacionais': '#BA7517',
+  'Asiáticas':               '#D4537E',
+};
+
+let active = 'Todos';
+const arena = document.getElementById('arena');
+const tip   = document.getElementById('tip');
+const CX = 380, CY = 380;
+const CARD_W = 92, CARD_H = 56, GAP = 6;
+
+function hueToAngleDeg(h) { return (h - 90 + 360) % 360; }
+
+function overlaps(x1, y1, x2, y2) {
+  return Math.abs(x1 - x2) < CARD_W + GAP && Math.abs(y1 - y2) < CARD_H + GAP;
+}
+
+function placeColored() {
+  document.querySelectorAll('.lcard').forEach(e => e.remove());
+  const colored = companies.filter(c => c.hue !== null);
+  colored.sort((a, b) => a.hue - b.hue);
+
+  const placed = [];
+
+  colored.forEach(c => {
+    const baseDeg = hueToAngleDeg(c.hue);
+    let bestX = null, bestY = null;
+
+    search: for (let r = 210; r <= 340; r += 18) {
+      for (let da = 0; da <= 30; da += 6) {
+        const signs = da === 0 ? [1] : [1, -1];
+        for (const s of signs) {
+          const deg = (baseDeg + da * s + 360) % 360;
+          const rad = deg * Math.PI / 180;
+          const x = CX + r * Math.sin(rad);
+          const y = CY - r * Math.cos(rad);
+          if (x < 50 || x > 710 || y < 50 || y > 710) continue;
+          let ok = true;
+          for (const p of placed) {
+            if (overlaps(x, y, p.x, p.y)) { ok = false; break; }
+          }
+          if (ok) { bestX = x; bestY = y; break search; }
+        }
+      }
+    }
+
+    if (bestX === null) {
+      const rad = baseDeg * Math.PI / 180;
+      bestX = CX + 340 * Math.sin(rad);
+      bestY = CY - 340 * Math.cos(rad);
+    }
+
+    placed.push({ x: bestX, y: bestY });
+
+    const card = document.createElement('div');
+    card.className = 'lcard';
+    card.dataset.cat = c.cat;
+    card.style.cssText = `left:${bestX}px;top:${bestY}px`;
+
+    const dot = document.createElement('div');
+    dot.className = 'cat-dot';
+    dot.style.background = catColors[c.cat] || '#ccc';
+    card.appendChild(dot);
+
+    const img = document.createElement('img');
+    img.src = c.logo;
+    img.alt = c.name;
+    img.onerror = function () {
+      const fb = document.createElement('span');
+      fb.className = 'name-fb';
+      fb.textContent = c.name;
+      card.appendChild(fb);
+      this.remove();
+    };
+    card.appendChild(img);
+
+    card.addEventListener('mouseenter', () => {
+      tip.style.display = 'block';
+      tip.textContent = c.name + ' · ' + c.cat;
+      tip.style.left = bestX + 'px';
+      tip.style.top = (bestY - 36) + 'px';
+    });
+    card.addEventListener('mouseleave', () => tip.style.display = 'none');
+
+    arena.appendChild(card);
+  });
+}
+
+function placeNeutral() {
+  const row = document.getElementById('neutral-row');
+  row.innerHTML = '';
+  companies.filter(c => c.hue === null).forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'ncard';
+    card.dataset.cat = c.cat;
+    card.title = c.name + ' · ' + c.cat;
+
+    const img = document.createElement('img');
+    img.src = c.logo;
+    img.alt = c.name;
+    img.onerror = function () {
+      card.innerHTML = `<span class="name-fb">${c.name}</span>`;
+    };
+    card.appendChild(img);
+    row.appendChild(card);
+  });
+}
+
+function buildFilters() {
+  const div = document.getElementById('filters');
+  cats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'fb' + (cat === 'Todos' ? ' on' : '');
+    btn.textContent = cat;
+    btn.onclick = () => {
+      active = cat;
+      div.querySelectorAll('.fb').forEach(b => b.classList.toggle('on', b.textContent === cat));
+      applyFilter();
+    };
+    div.appendChild(btn);
+  });
+}
+
+function applyFilter() {
+  let count = 0;
+  document.querySelectorAll('.lcard, .ncard').forEach(card => {
+    const show = active === 'Todos' || card.dataset.cat === active;
+    card.classList.toggle('dim', !show);
+    if (show) count++;
+  });
+  const label = active === 'Todos'
+    ? `${companies.length} empresas`
+    : `${count} empresa${count !== 1 ? 's' : ''} · ${active}`;
+  document.getElementById('count').textContent = label;
+}
+
+function buildLegend() {
+  const div = document.getElementById('legend');
+  Object.entries(catColors).forEach(([cat, color]) => {
+    const item = document.createElement('div');
+    item.className = 'leg';
+    item.innerHTML = `<div class="dot" style="background:${color}"></div><span>${cat}</span>`;
+    div.appendChild(item);
+  });
+}
+
+buildFilters();
+placeColored();
+placeNeutral();
+buildLegend();
+applyFilter();
+</script>
+
+</body>
+</html>
