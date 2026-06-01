@@ -13,12 +13,14 @@
 
 <div class="filters" id="filters"></div>
 
+<div class="arena-wrapper" id="arena-wrapper">
 <div class="arena" id="arena">
   <div class="tip" id="tip"></div>
   <div class="wheel-wrap">
     <div class="wheel"></div>
     <div class="wheel-hole"><span>cor da<br>marca</span></div>
   </div>
+</div>
 </div>
 
 <div class="neutral-sec">
@@ -215,6 +217,25 @@ placeColored();
 placeNeutral();
 buildLegend();
 applyFilter();
+
+function scaleArena() {
+  const wrapper = document.getElementById('arena-wrapper');
+  const arena = document.getElementById('arena');
+  const available = wrapper.clientWidth;
+  const ARENA_SIZE = 760;
+  if (available < ARENA_SIZE) {
+    const scale = available / ARENA_SIZE;
+    arena.style.transform = `scale(${scale})`;
+    arena.style.transformOrigin = 'top left';
+    wrapper.style.height = (ARENA_SIZE * scale) + 'px';
+  } else {
+    arena.style.transform = '';
+    wrapper.style.height = '';
+  }
+}
+
+scaleArena();
+window.addEventListener('resize', scaleArena);
 </script>
 
 </body>
